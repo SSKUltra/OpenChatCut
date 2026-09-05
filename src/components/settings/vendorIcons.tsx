@@ -43,7 +43,7 @@ export type VendorId =
   | 'seedance' | 'kling' | 'mureka' | 'sonilo' | 'pexels' | 'pixabay' | 'unsplash' | 'freesound'
   | 'assemblyai' | 'deepgram' | 'groq' | 'cartesia' | 'e2b' | 'firecrawl' | 'r2' | 'localdisk' | 'localasr'
   | 'stepfun' | 'byteplus' | 'inworld' | 'fishaudio' | 'speechify' | 'wavespeed'
-  | 'vision' | 'proxy' | 'atlas' | 'xai' | 'xai-oauth';
+  | 'vision' | 'proxy' | 'atlas' | 'xai' | 'xai-oauth' | 'copilot';
 
 interface SvgIcon {
   readonly svg: string;
@@ -103,6 +103,7 @@ const MONOGRAMS: Partial<Record<VendorId, { bg: string; mono: string; fg?: strin
   sonilo: { bg: '#101828', mono: 'SO', fg: '#e8f6f2' }, // Sonilo, no official SVG vendored yet
   xai: { bg: '#101010', mono: 'x', fg: '#f7f7f8' }, // xAI Grok, no official SVG vendored yet
   'xai-oauth': { bg: '#101010', mono: 'x', fg: '#f7f7f8' }, // xAI subscription login, shares the Grok monogram
+  copilot: { bg: '#24292f', mono: 'GH', fg: '#f6f8fa' }, // GitHub Copilot, no official SVG vendored yet
 };
 
 interface VendorIconProps {

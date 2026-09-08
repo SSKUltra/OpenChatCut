@@ -15,9 +15,10 @@ import { NativeAsrService } from './native-asr-service.ts';
 import { NativeClapService } from './native-clap-service.ts';
 import { NativeRhythmService } from './native-rhythm-service.ts';
 import { NativeSemanticService } from './native-semantic-service.ts';
-import { NativeInferenceBudget } from './native-inference-budget.ts';
 import {
-  NativeInferenceResidency,
+  nativeInferenceBudget, nativeInferenceResidency, evictNativeInference, registerNativeEviction,
+} from '../server/native-inference-coordinator.ts';
+import {
   estimateAsrResidentBytes,
   modelPackResidentBytes,
   type NativeInferenceKind,
@@ -93,8 +94,9 @@ class DesktopInferenceState {
   private readonly hardware?: DesktopHardwareCapabilities;
   private services: NativeServices;
   private enabled = false;
-  private readonly budget = new NativeInferenceBudget();
-  private readonly residency = new NativeInferenceResidency();
+  private readonly budget = nativeInferenceBudget;
+  private readonly residency = nativeInferenceResidency;
+  private readonly unregisterEvictions: Array<() => void> = [];
   private readonly observedOwners = new Map<number, ObservedOwner>();
 
   constructor(
@@ -106,6 +108,9 @@ class DesktopInferenceState {
     this.cacheDir = cacheDir;
     this.hardware = hardware;
     this.services = createServices(trustedOrigin, cacheDir, hardware);
+    for (const kind of ['asr', 'semantic', 'clap', 'rhythm'] as const) {
+      this.unregisterEvictions.push(registerNativeEviction(kind, () => this.evictService(kind)));
+    }
   }
 
   assertTrusted(event: IpcMainInvokeEvent): void {
@@ -145,7 +150,7 @@ class DesktopInferenceState {
       releaseResidency = this.residency.claim(
         kind,
         residentBytes,
-        (evictedKind) => this.evictService(evictedKind),
+        evictNativeInference,
       );
       return await operation(this.services, this.progressSender(event.sender));
     } finally {
@@ -172,6 +177,7 @@ class DesktopInferenceState {
       owner.sender.off('did-start-navigation', owner.onNavigation);
     }
     this.observedOwners.clear();
+    for (const unregister of this.unregisterEvictions) unregister();
   }
 
 
@@ -248,7 +254,7 @@ class DesktopInferenceState {
     for (const requestId of this.budget.requestIds()) this.cancelServices(requestId);
     this.disposeServices();
     this.services = createServices(this.trustedOrigin, this.cacheDir, this.hardware);
-    this.residency.clear();
+    for (const kind of ['asr', 'semantic', 'clap', 'rhythm'] as const) this.residency.forget(kind);
   }
 }
 

@@ -1,5 +1,7 @@
 import type { MediaAsset, TimelineState } from '../editor/types';
 import type { MinimaxLanguageBoost } from '../../shared/media-provider-params';
+import { localTtsFetch, type LocalTtsClientOptions } from '../../shared/local-tts/client';
+import type { LocalTtsProvenance } from '../../shared/local-tts/contract';
 
 export type VoiceProvider =
   | 'elevenlabs'
@@ -11,7 +13,8 @@ export type VoiceProvider =
   | 'openai'
   | 'gemini'
   | 'mistral'
-  | 'cartesia';
+  | 'cartesia'
+  | 'kokoro';
 
 export interface SubmitVoiceArgs {
   provider: VoiceProvider;
@@ -68,6 +71,7 @@ interface VoiceResponse {
   subtitlePath?: string;
   durationSeconds?: number;
   error?: string;
+  provenance?: LocalTtsProvenance;
 }
 
 const newId = () => crypto.randomUUID?.() ?? `generated_${Date.now()}_${Math.random().toString(36).slice(2)}`;
@@ -89,12 +93,14 @@ function probeAudio(src: string, fps: number): Promise<number> {
   });
 }
 
-export async function submitVoice(args: SubmitVoiceArgs, state: TimelineState): Promise<MediaAsset> {
-  const text = args.text.trim();
+export async function submitVoice(args: SubmitVoiceArgs, state: TimelineState, options: LocalTtsClientOptions = {}): Promise<MediaAsset> {
+  const text = args.provider === 'kokoro' ? args.text : args.text.trim();
   const voiceId = args.voiceId.trim();
   if (!text) throw new Error('text is required');
   if (!voiceId && !args.timbreWeights?.length) throw new Error('voiceId is required unless MiniMax timbreWeights are provided');
-  const response = await fetch('/generate/voice', {
+  const response = args.provider === 'kokoro'
+    ? await localTtsFetch('/generate/voice', { ...args, text, voiceId }, options)
+    : await fetch('/generate/voice', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ ...args, text, voiceId }),
@@ -102,10 +108,14 @@ export async function submitVoice(args: SubmitVoiceArgs, state: TimelineState): 
   const result = await response.json().catch(() => ({})) as VoiceResponse;
   if (!response.ok) throw new Error(result.error ?? `voice generation failed (${response.status})`);
   if (!result.path) throw new Error('voice generation returned no audio asset');
+  if (args.provider === 'kokoro' && (!Number.isFinite(result.durationSeconds) || result.durationSeconds! <= 0 || !result.provenance)) {
+    throw new Error('Local TTS returned invalid audio metadata');
+  }
   const durationInFrames = result.durationSeconds && Number.isFinite(result.durationSeconds)
     ? Math.max(1, Math.round(result.durationSeconds * state.fps))
     : await probeAudio(result.path, state.fps);
-  const props = result.subtitlePath ? { minimaxSubtitlePath: result.subtitlePath, minimaxSubtitleType: args.subtitleType ?? 'sentence' } : undefined;
+  const props = result.provenance ? { localTts: { ...result.provenance } }
+    : result.subtitlePath ? { minimaxSubtitlePath: result.subtitlePath, minimaxSubtitleType: args.subtitleType ?? 'sentence' } : undefined;
   return {
     id: newId(),
     name: args.name?.trim() || `Voice · ${voiceId}`,

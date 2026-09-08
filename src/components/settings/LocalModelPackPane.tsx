@@ -187,7 +187,7 @@ function PackActions({ pack, busy, install, remove, cancel }: Omit<PackCardProps
       <button type="button" disabled={busy} onClick={() => void remove(pack.id)} style={smallButton}>{t('删除')}</button>
     )}
     <button type="button" disabled={busy} onClick={() => void install(pack.id)} style={installButton}>
-      {pack.status === 'error' ? t('重新安装') : t('安装')}
+      {pack.status === 'error' ? t('重新安装') : pack.id === 'kokoro-en' ? t('下载') : t('安装')}
     </button>
   </div>;
 }

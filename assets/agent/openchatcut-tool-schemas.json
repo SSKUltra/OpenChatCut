@@ -1335,7 +1335,7 @@
     },
     {
       "name": "submit_voice",
-      "description": "Generate one TTS audio asset with ElevenLabs, Doubao, MiniMax, Inworld, Fish Audio, Speechify, OpenAI, Gemini, Mistral, or Cartesia. Creates a media-pool asset only; it does not place or replace timeline items. Confirm a configured provider and concrete provider-specific voice; MiniMax timbreWeights may mix voices with an empty voiceId.",
+      "description": "Generate one TTS audio asset with ElevenLabs, Doubao, MiniMax, Inworld, Fish Audio, Speechify, OpenAI, Gemini, Mistral, Cartesia, or local Kokoro. Creates a media-pool asset only; it does not place or replace timeline items. Confirm a configured provider and concrete provider-specific voice (saved Kokoro Settings choice counts); MiniMax timbreWeights may mix voices with an empty voiceId.",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -1351,9 +1351,10 @@
               "openai",
               "gemini",
               "mistral",
-              "cartesia"
+              "cartesia",
+              "kokoro"
             ],
-            "description": "Required opt-in provider. Use only a provider listed as configured in capabilities. Voice IDs and catalogs are never interchangeable."
+            "description": "Required opt-in provider. Use only a provider listed as configured in capabilities. Kokoro is local English CPU TTS on Apple Silicon Mac, explicitly installed in Settings. Voice IDs and catalogs are never interchangeable."
           },
           "text": {
             "type": "string",
@@ -1362,7 +1363,7 @@
           },
           "voiceId": {
             "type": "string",
-            "description": "Concrete provider-specific voice ID confirmed by the user. Required except MiniMax timbreWeights mixing, where it must be empty. Do not invent a preset or reuse an ID from another provider."
+            "description": "Concrete provider-specific voice ID confirmed by the user (a saved Kokoro Settings choice counts). Kokoro: af_heart/am_michael (US), bf_emma/bm_george (UK). Required except MiniMax timbreWeights mixing, where it must be empty. Do not invent a preset or reuse an ID from another provider."
           },
           "modelId": {
             "type": "string",
@@ -1378,7 +1379,7 @@
             "type": "number",
             "minimum": 0.5,
             "maximum": 2,
-            "description": "ElevenLabs (0.7–1.2), MiniMax (0.5–2), OpenAI, or Cartesia only. Defaults to 1; provider/model support is validated server-side."
+            "description": "ElevenLabs (0.7–1.2), MiniMax/Kokoro (0.5–2), OpenAI, or Cartesia only. Defaults to 1; use the saved Kokoro speed when provided in capabilities. Provider/model support is validated server-side."
           },
           "similarityBoost": {
             "type": "number",

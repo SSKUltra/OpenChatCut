@@ -201,6 +201,20 @@ OpenChatCut 是 **开源 ChatCut 替代方案**：把 **对话式 Agent** 和 **
 
 ---
 
+## Kokoro 本地英语配音
+
+在 **Apple Silicon Mac** 上，打开 **设置 → 配音 / TTS → Kokoro 本地**，
+点击**下载**（约 92 MB）。选择并试听 Heart / Michael（美式）或
+Emma / George（英式），保存音色与语速；默认供应商需另行选择，下载不会覆盖云端默认值。
+在聊天中请求配音后，得到一个完整的 24 kHz 单声道 WAV 媒体池素材，
+时间线放置仍使用现有工具。无需 TTS API Key 或 Python；生成不下载模型，
+不回退云端，也不支持克隆音色。浏览器与 Electron 均连接本地应用服务，
+聊天本身仍需要配置 Agent 后端。模型按需加载，CPU 推理按 1.5 GiB 内存预算管理。
+
+**分发阻断项：**运行时包含 GPL eSpeak 组件，并非全栈 Apache。
+发布二进制前必须确认并提供匹配的 Corresponding Source，
+详见[第三方声明](assets/licenses/local-tts/NOTICE.txt)。
+
 ## 社区资源库
 
 [OpenChatCut 社区资源库](https://openchatcut.com/zh/resources)用于发现、安装和分享可复用的 MG 动画、音效、转场、特效、缩放和 LUT。

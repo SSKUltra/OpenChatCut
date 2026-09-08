@@ -9,6 +9,7 @@ import { AI_SDK_BASE_URL_FORMAT, resolveLlmBaseUrl } from "./llm-config.ts";
 import { decodePersistedEnvValue, mergeEnvText } from "./env-text.ts";
 export { mergeEnvText } from "./env-text.ts";
 import { isIsolatedDevProfile, runtimeProfile } from "./runtime-profile.ts";
+import { isLocalTtsVoice } from "../shared/local-tts/contract.ts";
 import {
   LLM_PROVIDER_PRESETS,
   llmProviderConfigNames,
@@ -143,7 +144,7 @@ export interface Caps {
   web: boolean;
   storage: boolean;
 }
-export function computeCaps(): Caps {
+export function computeCaps(localTtsAvailable = false): Caps {
   const has = (n: KeyName): boolean => getKey(n).length > 0;
   return {
     image:
@@ -155,6 +156,7 @@ export function computeCaps(): Caps {
       has("BYTEPLUS_API_KEY") ||
       has("FAL_KEY"),
     voice:
+      localTtsAvailable ||
       (has("DOUBAO_TTS_APP_ID") && has("DOUBAO_TTS_ACCESS_KEY")) ||
       has("ELEVENLABS_API_KEY") ||
       has("MINIMAX_API_KEY") ||
@@ -211,7 +213,7 @@ export interface KeyStatus {
  * NON_SECRET_NAMES) NEVER appears in this (or any) response — secrets surface as
  * booleans + source only. Non-secret model/routing values are echoed raw in `models`
  * ('' when unset); the `keys` boolean map still covers every whitelisted name. */
-export function keyStatus(): KeyStatus {
+export function keyStatus(localTtsAvailable = false): KeyStatus {
   const keys: Record<string, KeyState> = {};
   const models: Record<string, string> = {};
   for (const name of KEY_NAMES) {
@@ -222,7 +224,7 @@ export function keyStatus(): KeyStatus {
     };
     if (NON_SECRET_NAMES.has(name)) models[name] = getKey(name);
   }
-  return { keys, caps: computeCaps(), models };
+  return { keys, caps: computeCaps(localTtsAvailable), models };
 }
 
 /** Apply key edits from the settings UI: validate, update memory, persist to .env.local.
@@ -234,6 +236,12 @@ export async function setKeys(patch: Record<string, unknown>): Promise<void> {
     const v = String(raw ?? "");
     if (/[\r\n]/.test(v))
       throw new Error(`invalid value for ${name}: no newlines allowed`);
+    if (name === 'LOCAL_TTS_VOICE' && v && !isLocalTtsVoice(v)) {
+      throw new Error('invalid LOCAL_TTS_VOICE');
+    }
+    if (name === 'LOCAL_TTS_SPEED' && v && (!Number.isFinite(Number(v)) || Number(v) < 0.5 || Number(v) > 2)) {
+      throw new Error('LOCAL_TTS_SPEED must be between 0.5 and 2');
+    }
     clean.set(name, normalizeStoredValue(name, v));
   }
   if (clean.size === 0) return;

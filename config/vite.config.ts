@@ -1,9 +1,10 @@
-import { defineConfig, loadEnv, searchForWorkspaceRoot, type Plugin } from 'vite';
+import { defineConfig, loadEnv, searchForWorkspaceRoot, type Plugin, type UserConfig } from 'vite';
 import { parse as parseDotenv } from 'dotenv';
 import react from '@vitejs/plugin-react';
 import { existsSync, readFileSync, realpathSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { serverPlugins } from '../server/plugins/index.ts';
+import { LocalTtsService } from '../server/local-tts/service.ts';
 import { seedKeystore, getKey } from '../server/keystore.ts';
 import { productAssetsPlugin } from '../server/product-assets.ts';
 import { runtimeProfile } from '../server/runtime-profile.ts';
@@ -83,7 +84,9 @@ function serveOrtWasmLoader(): Plugin {
 }
 
 // https://vite.dev/config/
-export default defineConfig(({ mode }) => {
+export default defineConfig(async ({ mode, command }): Promise<UserConfig> => {
+  const localTts = new LocalTtsService();
+  const localTtsAvailable = command === 'serve' && (await localTts.status()).available;
   const profile = runtimeProfile();
   // The first isolated start may bootstrap from checkout env. Once profile settings
   // exist, only the wrapper-merged process env is authoritative for that profile.
@@ -135,7 +138,7 @@ export default defineConfig(({ mode }) => {
       __APP_VERSION__: JSON.stringify(appPackage.version),
       __CONFIGURED_CAPS__: JSON.stringify({
         image: Boolean(imageKey || geminiKey || minimaxKey || falKey),
-        voice: Boolean((doubaoAppId && doubaoAccessKey) || elevenKey || minimaxKey),
+        voice: Boolean((doubaoAppId && doubaoAccessKey) || elevenKey || minimaxKey || localTtsAvailable),
         video: Boolean(seedanceKey || klingKey || minimaxKey || falKey),
         music: Boolean(murekaKey || minimaxKey),
         sound: Boolean(elevenKey),
@@ -148,7 +151,7 @@ export default defineConfig(({ mode }) => {
     // public/ = user runtime only (media/uploads). Product static files live in assets/
     // and are served/copied by productAssetsPlugin (URLs unchanged: /fonts, /thumbnails, …).
     publicDir: 'public',
-    plugins: [serveOrtWasmLoader(), react(), productAssetsPlugin(), excludeUserMediaFromBuild(), ...serverPlugins()],
+    plugins: [serveOrtWasmLoader(), react(), productAssetsPlugin(), excludeUserMediaFromBuild(), ...serverPlugins({ localTts })],
     server: {
       port: 5199,
       strictPort: true,

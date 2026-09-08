@@ -1,5 +1,6 @@
 import type { ValidVoiceRequest, VoiceRequest } from './voice-types.ts';
 import { MINIMAX_LANGUAGE_BOOSTS } from '../../shared/media-provider-params.ts';
+import { parseLocalTtsInput } from '../../shared/local-tts/contract.ts';
 
 const EMOTIONS = new Set(['happy', 'sad', 'angry', 'fearful', 'disgusted', 'surprised', 'calm', 'fluent', 'whisper']);
 const ELEVEN_OUTPUTS = new Set([
@@ -131,6 +132,14 @@ function validateAiProvider(input: VoiceRequest, provider: 'openai' | 'gemini' |
 
 export function validateVoiceRequest(input: VoiceRequest): ValidVoiceRequest {
   const provider = input.provider;
+  if (provider === 'kokoro') {
+    const permitted = new Set(['provider', 'text', 'voiceId', 'speed', 'name']);
+    if (Object.entries(input).some(([key, value]) => value !== undefined && !permitted.has(key))) {
+      throw new Error('Kokoro only accepts text, voiceId, speed, and name');
+    }
+    const local = parseLocalTtsInput({ ...input });
+    return { ...local, provider, outputFormat: 'wav', sampleRate: 24000, audioFormat: 'wav', channel: 1 };
+  }
   if (provider !== 'elevenlabs' && provider !== 'doubao' && provider !== 'minimax'
     && provider !== 'inworld' && provider !== 'fishaudio' && provider !== 'speechify' && !isAiProvider(provider)) {
     throw new Error('unsupported voice provider');

@@ -40,6 +40,13 @@ TTS provider keys:
   `LLM_MISTRAL_BASE_URL`; `MISTRAL_TTS_MODEL` defaults to
   `voxtral-mini-tts-2603`
 - Cartesia: `CARTESIA_API_KEY`; `CARTESIA_TTS_MODEL` defaults to `sonic-3`
+- Kokoro: no API key. On Apple Silicon Mac, explicitly download the verified
+  English model in Settings → Voice / TTS → Kokoro Local, choose/audition one
+  of the four built-in US/UK voices, and save `LOCAL_TTS_VOICE` / `LOCAL_TTS_SPEED`.
+  `PREFERRED_VOICE_VENDOR=kokoro` selects local routing separately; installing
+  never changes an existing cloud default. Missing/corrupt models are unavailable,
+  installed-but-unloaded models load lazily. Generation never downloads or falls
+  back to cloud. Local TTS does not provide an offline chat backend.
 
 Transcription follows the provider selected in Settings unless the user
 explicitly requests a configured `provider` override. AssemblyAI remains the
@@ -71,6 +78,7 @@ Exact availability is reflected in the live **capabilities** block injected into
 
 ## What works without cloud keys
 
+- Local English Kokoro narration after explicit model installation (Apple Silicon Mac)
 - Timeline editing, propose→apply, captions, transitions, FX, zoom, library MG templates  
 - Export (when the export path is available)  
 - Project / media pool / version history  

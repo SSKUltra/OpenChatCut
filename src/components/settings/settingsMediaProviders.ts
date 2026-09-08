@@ -8,6 +8,7 @@ import {
   type SettingsGroup,
   type SettingsVendorPage,
 } from './settingsFields';
+import { LOCAL_TTS_VOICES } from '../../../shared/local-tts/contract';
 
 const MINIMAX_NOTE = 'MiniMax 同一个 Key，配置一次全能力（生图 / 配音 / 视频 / 音乐）通用。';
 
@@ -89,6 +90,7 @@ export const VOICE_SETTINGS_GROUP: SettingsGroup = {
   title: '配音 / TTS',
   hint: 'submit_voice · 文字转配音，任一厂商即可。',
   route: routeSelect('PREFERRED_VOICE_VENDOR', [
+    { value: 'kokoro', label: 'Kokoro 本地' },
     { value: 'elevenlabs', label: 'ElevenLabs' },
     { value: 'doubao', label: '豆包' },
     { value: 'minimax', label: 'MiniMax' },
@@ -101,6 +103,16 @@ export const VOICE_SETTINGS_GROUP: SettingsGroup = {
     { value: 'cartesia', label: 'Cartesia' },
   ]),
   vendors: [
+    {
+      key: 'voice/kokoro', vendor: 'kokoro', title: 'Kokoro 本地',
+      note: '英语美式与英式配音，仅在 Apple Silicon Mac 本机 CPU 运行。音色随应用提供。',
+      fields: [
+        { name: 'LOCAL_TTS_VOICE', label: '默认音色', kind: 'select', defaultLabel: '尚未选择',
+          options: LOCAL_TTS_VOICES.map((voice) => ({ value: voice.id, label: `${voice.name} · ${voice.locale}` })) },
+        { name: 'LOCAL_TTS_SPEED', label: '语速', kind: 'select', defaultLabel: '1×',
+          options: [0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => ({ value: String(speed), label: `${speed}×` })) },
+      ],
+    },
     {
       key: 'voice/elevenlabs', vendor: 'elevenlabs', title: 'ElevenLabs',
       note: 'Key 同时用于音效生成（submit_sound）。',
@@ -229,6 +241,7 @@ export const TRANSCRIPTION_SETTINGS_GROUP: SettingsGroup = {
 
 export const ROUTE_NEEDS: Record<string, readonly (readonly string[])[]> = {
   fal: [['FAL_KEY']],
+  kokoro: [],
   'gpt-image-2': [['IMAGE_API_KEY'], ['OPENAI_API_KEY']],
   'nano-banana': [['GEMINI_API_KEY']],
   'image-01': [['MINIMAX_API_KEY']],

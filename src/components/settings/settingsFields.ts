@@ -1,5 +1,6 @@
 import type { IconName } from '../icons';
 import type { VendorId } from './vendorIcons';
+import type { LocalTtsStatus } from '../../../shared/local-tts/contract';
 
 export type FieldKind = 'secret' | 'text' | 'select' | 'toggle' | 'directory';
 
@@ -50,6 +51,7 @@ export interface SettingsCategory {
 
 export interface KeyState { configured: boolean; source: 'env' | 'runtime' | 'none'; }
 export interface KeyStatusResponse {
+  localTts?: LocalTtsStatus;
   keys: Record<string, KeyState>;
   caps: Record<string, boolean>;
   models: Record<string, string>;

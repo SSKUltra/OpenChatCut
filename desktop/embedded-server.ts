@@ -18,6 +18,7 @@ import { listenWithAffinity } from './embedded-port.ts';
 import { runtimeProfile } from '../server/runtime-profile.ts';
 import { distStaticMiddleware, uploadsMiddleware } from './static-files.ts';
 import { registerProductAssetRoot } from '../server/product-assets.ts';
+import type { LocalTtsService } from '../server/local-tts/service.ts';
 
 export interface EmbeddedServer {
   server: Server;
@@ -71,7 +72,7 @@ export function mountAssemblyAiProxy(
   app.use('/assemblyai', proxyMiddleware(route));
 }
 
-export async function startEmbeddedServer(distDir: string): Promise<EmbeddedServer> {
+export async function startEmbeddedServer(distDir: string, localTts?: LocalTtsService): Promise<EmbeddedServer> {
   // Product files (fonts, voice samples, LUTs, …) live in resources/dist when packaged.
   registerProductAssetRoot(distDir);
   await seedFromEnvLocal();
@@ -96,7 +97,7 @@ export async function startEmbeddedServer(distDir: string): Promise<EmbeddedServ
       },
     },
   } as unknown as ViteDevServer;
-  for (const plugin of serverPlugins({ projectStoreHttp: true })) {
+  for (const plugin of serverPlugins({ projectStoreHttp: true, localTts })) {
     const hook = plugin.configureServer;
     const fn = typeof hook === 'function' ? hook : hook?.handler;
     await fn?.call(plugin as never, fake);

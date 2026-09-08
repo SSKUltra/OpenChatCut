@@ -39,6 +39,7 @@ const nativeInferenceWorkers = nativeInferenceSupported
       'desktop-dist/native-semantic-worker.mjs',
       'desktop-dist/native-clap-worker.mjs',
       'desktop-dist/native-rhythm-worker.mjs',
+      'desktop-dist/local-tts-worker.mjs',
     ]
   : [];
 const onnxRuntimeFilters = keepOnnxRuntime
@@ -46,6 +47,11 @@ const onnxRuntimeFilters = keepOnnxRuntime
       .filter((runtimeTarget) => runtimeTarget !== keepOnnxRuntime)
       .map((runtimeTarget) => `!node_modules/onnxruntime-node/bin/napi-v6/${runtimeTarget}/**`)
   : ['!node_modules/onnxruntime-node/**'];
+// Kokoro intentionally owns Transformers 3 / ORT 1.21 (napi-v3), isolated from
+// the app's existing ORT stack. Keep its bundled voices and license materials.
+const kokoroRuntimeFilters = ONNX_RUNTIME_TARGETS
+  .filter((runtimeTarget) => target !== 'darwin-arm64' || runtimeTarget !== 'darwin/arm64')
+  .map((runtimeTarget) => `!node_modules/kokoro-js/node_modules/onnxruntime-node/bin/napi-v3/${runtimeTarget}/**`);
 // sqlite-vec publishes separate extension packages whose suffixes do not all
 // match Node's process.platform names. Keep only the package for this artifact.
 const SQLITE_VEC_PACKAGES = [
@@ -94,6 +100,7 @@ export default {
     ...COMPOSITORS.filter((c) => c !== keep).map((c) => `!node_modules/@remotion/compositor-${c}/**`),
     // onnxruntime-node publishes every platform in one package; ship only this artifact's binary.
     ...onnxRuntimeFilters,
+    ...kokoroRuntimeFilters,
     // sqlite-vec (semantic vectors): ship only the target platform's vec0 extension.
     ...sqliteVecFilters,
   ],

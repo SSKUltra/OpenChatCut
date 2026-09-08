@@ -3,6 +3,7 @@ import type { SubmitMusicArgs } from '../../generate/music';
 import type { SubmitSoundArgs } from '../../generate/sound';
 import type { SubmitVideoArgs } from '../../generate/video';
 import type { SubmitVoiceArgs, VoiceProvider } from '../../generate/voice';
+import { parseLocalTtsInput } from '../../../shared/local-tts/contract';
 
 export type GenerateArgs = Record<string, unknown>;
 export const shouldAddImageToTimeline = (args: GenerateArgs): boolean => args.addToTimeline !== false;
@@ -121,6 +122,13 @@ function genericVoice(args: GenerateArgs, provider: GenericVoiceProvider): Submi
 }
 
 const VOICE_STRATEGIES = {
+  kokoro: (args) => {
+    const allowed = new Set(['provider', 'text', 'voiceId', 'speed', 'name']);
+    if (Object.entries(args).some(([key, value]) => value !== undefined && !allowed.has(key))) {
+      throw new Error('Kokoro only accepts text, voiceId, speed, and name');
+    }
+    return { provider: 'kokoro', ...parseLocalTtsInput(args), name: str(args.name) };
+  },
   elevenlabs: elevenVoice,
   doubao: doubaoVoice,
   minimax: minimaxVoice,

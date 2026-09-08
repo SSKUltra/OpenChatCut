@@ -1,6 +1,7 @@
 import { startUiLocaleSync } from '../i18n/localeSync';
 import { useCallback, useEffect, useState } from 'react';
-import { applyLiveCaps, applyLiveKeyStatus, applyLiveModels } from '../agent/capabilities';
+import { applyLiveCaps, applyLiveKeyStatus, applyLiveModels, applyLocalTtsStatus } from '../agent/capabilities';
+import type { LocalTtsStatus } from '../../shared/local-tts/contract';
 import { fetchCodexModels, fetchCodexStatus } from '../agent/codex/client';
 import { fetchCopilotModels, fetchCopilotStatus } from '../agent/copilot/client';
 import { fetchClaudeCodeModels, fetchClaudeCodeStatus } from '../agent/claude-code/client';
@@ -20,6 +21,7 @@ import { projectStoreWriteCredential } from '../persist/projectStoreTransport';
 export type AppRoute = { name: 'dashboard' } | { name: 'editor'; id: string };
 
 interface LiveAgentStatus {
+  readonly localTts?: LocalTtsStatus;
   readonly caps?: Record<string, boolean>;
   readonly keys?: Record<string, { readonly configured: boolean }>;
   readonly models?: Record<string, string>;
@@ -102,7 +104,8 @@ export async function syncAgentBackends(isActive: () => boolean): Promise<void> 
   let savedCodexReasoningEffort: string | undefined;
   let savedClaudeCodeModel: string | undefined;
   if (keyResult.status === 'fulfilled') {
-    const { caps, keys, models } = keyResult.value;
+    const { caps, keys, models, localTts } = keyResult.value;
+    applyLocalTtsStatus(localTts ?? null);
     if (caps) applyLiveCaps(caps);
     if (keys) applyLiveKeyStatus(keys);
     if (models) {
@@ -157,7 +160,22 @@ export function useAgentBackendSync(): void {
   useEffect(() => {
     let alive = true;
     void syncAgentBackends(() => alive);
-    return () => { alive = false; };
+    const refreshLocal = async () => {
+      try {
+        const response = await fetch('/api/keys');
+        if (!response.ok) return;
+        const result = await response.json() as LiveAgentStatus;
+        if (!alive) return;
+        applyLocalTtsStatus(result.localTts ?? null);
+        if (result.caps) applyLiveCaps(result.caps);
+        if (result.keys) applyLiveKeyStatus(result.keys);
+        if (result.models) applyLiveModels(result.models);
+      } catch { /* Retain the last verified server snapshot while disconnected. */ }
+    };
+    const refresh = () => { void refreshLocal(); };
+    const timer = window.setInterval(refresh, 10_000);
+    window.addEventListener('focus', refresh);
+    return () => { alive = false; window.clearInterval(timer); window.removeEventListener('focus', refresh); };
   }, []);
 }
 

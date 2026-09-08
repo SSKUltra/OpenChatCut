@@ -55,9 +55,12 @@ import { getKey } from "../keystore.ts";
 
 import { installSystemProxy } from '../net.ts';
 import { requestShapeGatePlugin } from './request-shape-gate';
+import { LocalTtsService } from '../local-tts/service.ts';
+import { localTtsPlugin } from '../local-tts/http.ts';
 
-export function serverPlugins(options: { projectStoreHttp?: boolean } = {}): Plugin[] {
+export function serverPlugins(options: { projectStoreHttp?: boolean; localTts?: LocalTtsService } = {}): Plugin[] {
   installSystemProxy();
+  const localTts = options.localTts ?? new LocalTtsService();
   return [
     requestShapeGatePlugin(),
     crossOriginIsolationPlugin(),
@@ -79,7 +82,8 @@ export function serverPlugins(options: { projectStoreHttp?: boolean } = {}): Plu
     codexAgentPlugin(),
     copilotAgentPlugin(),
     claudeCodeAgentPlugin(),
-    settingsPlugin(),
+    settingsPlugin(localTts),
+    localTtsPlugin(localTts),
     exportStagePlugin(),
     exportPlugin(),
     exportDestinationPlugin(),
@@ -217,7 +221,7 @@ export function serverPlugins(options: { projectStoreHttp?: boolean } = {}): Plu
         return getKey("SPEECHIFY_TTS_MODEL") || "simba-multilingual";
       },
       ai: aiVoiceOptions(),
-    }),
+    }, localTts),
     soundGenerationPlugin({
       get baseUrl() {
         return getKey("ELEVENLABS_BASE_URL") || "https://api.elevenlabs.io";

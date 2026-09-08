@@ -163,6 +163,8 @@ const MODEL_ROUTING_NAMES = [
   'PREFERRED_IMAGE_VENDOR', 'PREFERRED_VOICE_VENDOR', 'PREFERRED_VIDEO_VENDOR', 'PREFERRED_MUSIC_VENDOR',
   'PREFERRED_TRANSCRIPTION_PROVIDER', 'TRANSCRIPTION_LANGUAGE', 'TRANSCRIPTION_DIARIZATION', 'AUTO_TRANSCRIBE_INGEST', 'UI_SCALE', 'UI_SCALE_BASE', 'UI_LOCALE',
   'LOCAL_ASR_MODEL', // On-device ASR model tier: '' | tiny | base | small | medium
+  'LOCAL_TTS_VOICE',
+  'LOCAL_TTS_SPEED', // On-device ASR model tier: '' | tiny | base | small | medium
   'R2_ENABLED', // Cloud synchronization switch (''=enable/'0'=disable)
   'R2_PRESIGN', // Browser pre-signed direct transmission (''=enabled/'0'=server-side write-through only)
   'MEDIA_DIR',  // Asset saving directory (''=default public/media/uploads),

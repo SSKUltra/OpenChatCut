@@ -69,6 +69,8 @@ export interface AgentContext {
   /** Live progress note for long-running tool execution (e.g. local ASR model
    * load/download); surfaced through the chat run status when present. */
   onToolProgress?: (note: string) => void;
+  /** Request-scoped cancellation for native work (not a global cancel flag). */
+  toolSignal?: AbortSignal;
 }
 /** Source-media span of a placed clip in ms (srcIn → srcIn + duration·rate). */
 function sourceMediaSpan(item: TimelineItem, fps: number): Record<string, number> {

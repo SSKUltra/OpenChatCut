@@ -6,6 +6,9 @@ import { saveVoiceAudio, saveVoiceSubtitle } from './voice-media.ts';
 import { doubaoVoice, elevenLabsVoice, fishAudioVoice, inworldVoice, minimaxVoice, speechifyVoice } from './voice-providers.ts';
 import type { VoiceOptions, VoiceProvider, VoiceRequest } from './voice-types.ts';
 import { validateVoiceRequest } from './voice-validation.ts';
+import type { LocalTtsService } from '../local-tts/service.ts';
+import { localNarration, localTtsErrorStatus } from '../local-tts/http.ts';
+import { parseLocalTtsInput } from '../../shared/local-tts/contract.ts';
 
 export { validateVoiceRequest };
 
@@ -36,14 +39,21 @@ function audioDescriptor(provider: VoiceProvider, outputFormat: string, audioFor
   return { codec: 'mp3', sampleRate: 24_000 };
 }
 
-export function voiceGenerationPlugin(options: VoiceOptions): Plugin {
+export function voiceGenerationPlugin(options: VoiceOptions, localTts?: LocalTtsService): Plugin {
   return {
     name: 'openchatcut-voice-generation',
     configureServer(server) {
       server.middlewares.use('/generate/voice', async (req, res) => {
         if (req.method !== 'POST') { sendJson(res, 405, { error: 'method not allowed — use POST' }); return; }
+        let localRequest = false;
         try {
           const input = validateVoiceRequest(await readJson(req));
+          if (input.provider === 'kokoro') {
+            localRequest = true;
+            if (!localTts) throw new Error('Local TTS service is unavailable');
+            await localNarration(localTts, req, res, parseLocalTtsInput({ ...input }));
+            return;
+          }
           if (isAiVoiceProvider(input.provider)) {
             const audio = await generateAiVoice(options, input);
             const saved = await saveVoiceAudio(audio.bytes, audio.codec, audio.sampleRate);
@@ -68,7 +78,7 @@ export function voiceGenerationPlugin(options: VoiceOptions): Plugin {
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error);
           server.config.logger.error(`[generate:voice] ${message}`);
-          sendJson(res, 400, { error: message });
+          if (!res.destroyed && !res.writableEnded) sendJson(res, localRequest ? localTtsErrorStatus(error) : 400, { error: message });
         }
       });
     },

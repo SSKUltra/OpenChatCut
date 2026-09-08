@@ -42,13 +42,13 @@ Use `submit_voice` to create a TTS audio asset. The current MCP tool contract is
 
 - `provider` is required. Configured choices may be `doubao`, `elevenlabs`,
   `minimax`, `inworld`, `fishaudio`, `speechify`, `openai`, `gemini`,
-  `mistral`, or `cartesia`. All providers are opt-in; use only providers shown
+  `mistral`, `cartesia`, or `kokoro`. All providers are opt-in; use only providers shown
   as configured in the capabilities prompt.
 - `voiceId` is required, concrete, and provider-specific. The only exception is
   deliberate MiniMax `timbreWeights` mixing, where `voiceId` must be empty. Do
   not mix catalogs.
 - The curated catalog in [references/voices.md](references/voices.md) covers
-  only Doubao, ElevenLabs, and MiniMax. Other providers have no bundled preset
+  Doubao, ElevenLabs, MiniMax, and Kokoro. Other providers have no bundled preset
   or sample catalog in OpenChatCut. Require a concrete voice ID from the user or
   their provider account; never invent a preset or `/voice-samples/...` URL.
 - AI SDK-backed fields are provider-specific: OpenAI supports `modelId`,
@@ -61,6 +61,18 @@ Use `submit_voice` to create a TTS audio asset. The current MCP tool contract is
   these providers.
 - `submit_voice` creates an audio asset only. Timeline placement, replacement,
   trimming, and alignment happen later with timeline tools.
+- Kokoro is English-only local CPU synthesis on Apple Silicon Macs. Download
+  the verified model via Settings → Voice / TTS → Kokoro Local. Generation never
+  downloads or falls back to cloud. Installation does not change provider routing.
+  Choose Heart `af_heart` / Michael `am_michael` (US) or Emma `bf_emma` /
+  George `bm_george` (UK). Settings has fixed-sample audition, not sample URLs.
+  A saved Settings voice is already confirmed: use that concrete `voiceId`
+  and saved speed without repeatedly asking. Only text, voiceId, speed (0.5–2),
+  and name are accepted. No cloning or cloud expressive parameters.
+  Long text is split internally by actual token limits without truncation,
+  returning one completed 24 kHz mono WAV in the media pool. Progress and
+  cancellation are request-scoped; do not use `track_progress` jobs for TTS.
+  TTS is keyless after installation; chat still needs a configured agent backend.
 - For long narration, multiple `submit_voice` calls can be useful: split at
   natural pauses, sentence groups, or script beat boundaries when the workflow
   benefits from separately timed or placed voice clips.
@@ -379,7 +391,7 @@ submit_sound({
 
 | Field | Description | Notes |
 | --- | --- | --- |
-| `provider` | `doubao`, `elevenlabs`, `minimax`, `inworld`, `fishaudio`, `speechify`, `openai`, `gemini`, `mistral`, or `cartesia` | Required; configured choices only |
+| `provider` | `doubao`, `elevenlabs`, `minimax`, `inworld`, `fishaudio`, `speechify`, `openai`, `gemini`, `mistral`, `cartesia`, or `kokoro` | Required; configured choices only |
 | `text` | Text to synthesize | Required |
 | `voiceId` | Concrete provider-specific voice ID | Required except MiniMax timbre mix |
 | `modelId` | Provider model override | ElevenLabs, Inworld, Fish Audio, Speechify, OpenAI, Gemini, Mistral, Cartesia |
@@ -416,6 +428,9 @@ confirmed by the user and have no bundled OpenChatCut samples.
 Provider choice:
 
 - Honor an explicit configured provider first.
+- A saved Kokoro Settings voice/speed is already confirmed. Honor the capability
+  routing choice; do not force English narration to a cloud vendor when Kokoro
+  is chosen or is the only available provider.
 - For Chinese narration, prefer a matching curated Doubao voice (or MiniMax
   when configured/requested). Use another provider only after the user chooses
   it and confirms its voice ID.

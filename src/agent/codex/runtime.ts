@@ -218,7 +218,7 @@ export async function executeOpenChatCutTool(
     state.before = snapshotTimeline(execution.ctx.getState());
     state.started = true;
     const result = await (execution.executeTool ?? executeEditorTool)(
-      schema.name, state.invocationArgs, execution.ctx, execution.toolCatalog, execution.harness,
+      schema.name, state.invocationArgs, { ...execution.ctx, toolSignal: execution.signal }, execution.toolCatalog, execution.harness,
     );
     throwIfToolAborted(execution.signal, state);
     return await settleToolResult(schema, state.invocationArgs, result, execution, state);

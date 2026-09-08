@@ -2,6 +2,7 @@ import type { BrowserWindow } from 'electron';
 import { externalMcpToken } from '../server/editor-auth.ts';
 import { runDesktopMcpRecoverySmoke } from './smoke-mcp-recovery.ts';
 import { runDesktopRendererRecoverySmoke } from './smoke-renderer-recovery.ts';
+import { runLocalTtsSmoke } from './smoke-local-tts.ts';
 
 const RENDER_DRAIN_MS = 500;
 // Under the app's 240s watchdog, over any plausible healthy render (previous
@@ -84,6 +85,7 @@ export async function runDesktopSmokeProbe(
     throw new Error('desktop native inference preload is unavailable');
   }
   console.log('[smoke] desktop native inference preload ok');
+  if (process.env.CC_SMOKE_LOCAL_TTS === '1') await runLocalTtsSmoke(origin);
   if (render) {
     // The render runs BEFORE the renderer-recovery phase: on the v0.2.12
     // windows-latest run the app wedged after the deliberate renderer crashes

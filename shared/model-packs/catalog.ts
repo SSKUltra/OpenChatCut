@@ -1,6 +1,7 @@
-export type ModelPackId = 'rhythm-lite' | 'music-semantics-lite' | 'visual-semantics-lite';
+export type ModelPackId = 'rhythm-lite' | 'music-semantics-lite' | 'visual-semantics-lite' | 'kokoro-en';
 
 export type ModelPackCapability =
+  | '英语本地配音'
   | '节拍定位'
   | '下拍定位'
   | 'BPM 与拍号'
@@ -156,6 +157,23 @@ export const MODEL_PACKS = [
       },
     ],
   },
+  {
+    id: 'kokoro-en',
+    label: 'Kokoro 英语配音包',
+    description: '英语美式与英式配音，仅在 Apple Silicon Mac 本机 CPU 运行。音色随应用提供。',
+    modelId: 'onnx-community/Kokoro-82M-v1.0-ONNX',
+    revision: '1939ad2a8e416c0acfeecc08a694d14ef25f2231',
+    license: 'Apache-2.0',
+    sizeBytes: 92_364_770,
+    recommendedMemoryBytes: 1536 * 1024 * 1024,
+    capabilities: ['英语本地配音'],
+    files: [
+      { path: 'config.json', sizeBytes: 44, sha256: 'df34b4f930b23447cd4dc410fabfb42eb3f24e803e6c3f97d618fb359380a36f' },
+      { path: 'tokenizer_config.json', sizeBytes: 113, sha256: 'be1cb066d6ef6b074b3f15e6a6dd21ac88ff3cdaedf325f0aaed686c70f75d20' },
+      { path: 'tokenizer.json', sizeBytes: 3497, sha256: '77a02c8e164413299b4b4c403b14f8e0e1c1b727db4d46a09d6327b861060a34' },
+      { path: 'onnx/model_quantized.onnx', sizeBytes: 92_361_116, sha256: 'fbae9257e1e05ffc727e951ef9b9c98418e6d79f1c9b6b13bd59f5c9028a1478' },
+    ],
+  },
 ] as const satisfies readonly ModelPackDefinition[];
 
 export function modelPackDefinition(id: string): ModelPackDefinition | undefined {
@@ -171,5 +189,8 @@ export function modelPackInstallGuidance(packs: readonly { id: string }[]): stri
     const def = MODEL_PACKS.find((entry) => entry.id === pack.id);
     return def ? `${def.label}（${def.id}）` : pack.id;
   }).join('、');
+  if (packs.length && packs.every((pack) => pack.id === 'kokoro-en')) {
+    return `请到 设置 → 配音 / TTS → Kokoro 本地 下载：${names}（Settings → Voice / TTS → Kokoro Local）`;
+  }
   return `请到 设置 → 转写 → 本地模型 下载：${names}（Settings → Transcription → Local models: ${packs.map((pack) => pack.id).join(', ')}）`;
 }

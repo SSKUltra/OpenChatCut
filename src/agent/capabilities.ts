@@ -1,4 +1,5 @@
 import { FAL_MODELS } from '../../shared/fal-models';
+import { isLocalTtsVoice, type LocalTtsStatus } from '../../shared/local-tts/contract';
 // Which key-gated capabilities are actually configured. The booleans are computed
 // SERVER-SIDE in config/vite.config.ts (from .env.local) and injected via `define` as
 // __CONFIGURED_CAPS__ — BOOLEANS ONLY, never any key value reaches the browser.
@@ -52,6 +53,8 @@ let liveModels: Record<string, string> | null = null;
 export function applyLiveModels(models: Record<string, string>): void {
   liveModels = models;
 }
+let localTts: LocalTtsStatus | null = null;
+export function applyLocalTtsStatus(status: LocalTtsStatus | null): void { localTts = status; }
 
 // Which vendors light up a capability: `arg` is the EXACT tool-arg value that selects
 // the vendor (and what PREFERRED_*_VENDOR stores); `need` = OR of AND-groups of key
@@ -68,6 +71,7 @@ const CAP_PROVIDERS: Partial<Record<CapabilityKey, ProviderRow[]>> = {
     { label: 'xAI Grok', arg: 'grok-imagine', argKey: 'model', need: [['LLM_XAI_OAUTH_API_KEY'], ['LLM_XAI_API_KEY']] },
   ],
   voice: [
+    { label: 'Kokoro Local', arg: 'kokoro', argKey: 'provider', need: [] },
     { label: 'ElevenLabs', arg: 'elevenlabs', argKey: 'provider', need: [['ELEVENLABS_API_KEY']] },
     { label: 'Doubao', arg: 'doubao', argKey: 'provider', need: [['DOUBAO_TTS_APP_ID', 'DOUBAO_TTS_ACCESS_KEY']] },
     { label: 'MiniMax', arg: 'minimax', argKey: 'provider', need: [['MINIMAX_API_KEY']] },
@@ -145,7 +149,7 @@ function providerSuffix(cap: CapabilityKey, mode: ApprovalMode): string {
   const rows = CAP_PROVIDERS[cap];
   if (!rows || !liveKeys) return '';
   const has = (n: string): boolean => Boolean(liveKeys?.[n]?.configured);
-  const on = rows.filter((r) => r.need.some((group) => group.every(has)));
+  const on = rows.filter((r) => r.arg === 'kokoro' ? localTts?.available : r.need.some((group) => group.every(has)));
   if (on.length === 0) return '';
   const prefKey = PREFERRED_KEY[cap];
   const savedPref = prefKey ? (liveModels?.[prefKey] ?? '').trim() : '';
@@ -188,6 +192,12 @@ export function capabilitiesPrompt(
   for (const r of CAP_ROWS) {
     if (caps[r.key]) on.push(`${r.label}(${r.tool}${providerSuffix(r.key, mode)})`);
     else off.push(`${r.label} (${r.tool}) — ${r.fallback}`);
+  }
+  const savedVoice = liveModels?.LOCAL_TTS_VOICE;
+  if (localTts?.available && isLocalTtsVoice(savedVoice)) {
+    const speed = Number(liveModels?.LOCAL_TTS_SPEED);
+    const savedSpeed = Number.isFinite(speed) && speed >= 0.5 && speed <= 2 ? speed : 1;
+    on.push(`Kokoro saved voiceId=${savedVoice}, speed=${savedSpeed} — use this concrete voice without asking again when provider=kokoro`);
   }
   return `\n\n# Available capabilities (based on configured API keys; local editing is always available without keys)\n`
     + `✅ Configured: ${on.length ? on.join(', ') : '(no key-gated capabilities)'}.\n`

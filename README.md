@@ -201,6 +201,23 @@ Describe the goal → Agent reads the project → Produces verifiable edits → 
 
 ---
 
+## Local English narration (Kokoro)
+
+On an **Apple Silicon Mac**, open **Settings → Voice / TTS → Kokoro Local** and
+click **Download** (about 92 MB). Select and audition Heart/Michael (US) or
+Emma/George (UK), save the voice/speed, and separately choose Kokoro as the
+default voice provider if desired. Installation never changes cloud defaults.
+Ask chat to generate narration: one completed 24 kHz mono WAV goes into the
+media pool; existing timeline tools handle placement. No TTS API key, Python,
+model downloads during generation, cloud fallback, or voice cloning.
+The local app server supports browser and Electron clients; chat still uses
+your configured agent backend. CPU inference loads lazily and is budgeted at
+1.5 GiB, not the model's download size.
+
+**Redistribution gate:** the runtime includes GPL eSpeak components, not just
+Apache-licensed code. Matching eSpeak Corresponding Source must be established
+before binary distribution; see [third-party notices](assets/licenses/local-tts/NOTICE.txt).
+
 ## Community Resources
 
 The [OpenChatCut resource library](https://openchatcut.com/resources) is a shared catalog for reusable MG animations, sound effects, transitions, visual effects, zooms, and LUTs.

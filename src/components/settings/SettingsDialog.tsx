@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { theme } from '../../theme';
 import { t, useT } from '../../i18n/locale';
 import { Icon } from '../icons';
 import { VendorIcon } from './vendorIcons';
-import { applyLiveCaps, applyLiveKeyStatus, applyLiveModels } from '../../agent/capabilities';
+import { applyLiveCaps, applyLiveKeyStatus, applyLiveModels, applyLocalTtsStatus } from '../../agent/capabilities';
 import { applyAgentModelStatus } from '../../agent/model-selection';
 import {
   TRANSCRIPTION_DIARIZATION_KEY,
@@ -199,6 +199,7 @@ function seedSelection(initialVendor?: string): { group: SettingsGroup; vendor: 
 
 /** After successful saving, let the agent side immediately perceive: caps / key Boolean / model routing / LLM interface and model. */
 function applySavedToAgent(next: KeyStatusResponse): void {
+  applyLocalTtsStatus(next.localTts ?? null);
   applyLiveCaps(next.caps);
   applyLiveKeyStatus(next.keys);
   if (next.models) applyLiveModels(next.models);
@@ -261,7 +262,7 @@ export function SettingsDialog({ onClose, initialVendor }: { onClose: () => void
   const [values, setValues] = useState<Values>({});
   const { group, page, selectGroup, selectVendor } = useTreeSelection(initialVendor);
   const [reveal, setReveal] = useState(false);
-  const refreshStatus = async (): Promise<void> => {
+  const refreshStatus = useCallback(async (): Promise<void> => {
     try {
       const response = await fetch('/api/keys');
       const next = (await response.json()) as KeyStatusResponse;
@@ -270,7 +271,7 @@ export function SettingsDialog({ onClose, initialVendor }: { onClose: () => void
     } catch {
       // Keep the stale snapshot; the next save or dialog open refreshes it.
     }
-  };
+  }, [setStatus]);
   const ctx = useFieldContext(status, values, setValues, reveal, refreshStatus,
     page.connection === 'copilot');
   useEffect(() => {

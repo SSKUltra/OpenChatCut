@@ -46,7 +46,7 @@ const RULES: Rule[] = [
     service: 'voice / TTS (配音/语音合成)',
     keywords: [
       'elevenlabs', 'doubao tts', 'minimax tts', 'inworld tts', 'fish audio tts',
-      'speechify tts', 'openai tts', 'gemini tts', 'mistral tts', 'cartesia tts',
+      'speechify tts', 'openai tts', 'gemini tts', 'mistral tts', 'cartesia tts', 'kokoro',
       'text-to-speech', 'tts ', '配音', '语音合成', 'voiceover', 'voice clone',
       '语音克隆', 'indextts', 'narration voice',
     ],

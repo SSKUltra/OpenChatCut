@@ -346,6 +346,7 @@ export function vendorConfigured(
   copilotStatus?: CopilotAgentStatus | null,
   claudeCodeStatus?: ClaudeCodeAgentStatus | null,
 ): boolean {
+  if (page.key === 'voice/kokoro') return Boolean(status?.localTts?.available);
   if (page.connection === 'codex') {
     return Boolean(codexStatus?.installed && codexStatus.account?.type === 'chatgpt');
   }
@@ -422,7 +423,7 @@ export function selectOptionLabel(
   if (!field.name.startsWith('PREFERRED_') || opt.value === '') return t(opt.label);
   const needs = ROUTE_NEEDS[opt.value];
   const has = (n: string): boolean => Boolean(status?.keys[n]?.configured);
-  const ok = Boolean(needs?.some((group) => group.every(has)));
+  const ok = opt.value === 'kokoro' ? Boolean(status?.localTts?.available) : Boolean(needs?.some((group) => group.every(has)));
   return ok ? t(opt.label) : t('{name}（未配置）', { name: t(opt.label) });
 }
 

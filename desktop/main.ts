@@ -15,6 +15,7 @@ import {
 } from 'electron';
 import { buildTextContextMenuTemplate } from './context-menu.ts';
 import { startEmbeddedServer } from './embedded-server.ts';
+import { createElectronTts } from './local-tts-adapter.ts';
 import { createTransparentMovProxy, importLocalMedia } from '../server/local-media-import.ts';
 import {
   createLocalMediaImportHandler,
@@ -348,7 +349,7 @@ async function boot(): Promise<void> {
     packaged: app.isPackaged,
     smoke: SMOKE,
   });
-  const origin = devOrigin ?? (await startEmbeddedServer(DIST_DIR)).origin;
+  const origin = devOrigin ?? (await startEmbeddedServer(DIST_DIR, createElectronTts())).origin;
   registerDesktopHandlers(origin);
   installProjectStoreIpc(origin);
   installEditorAuthIpc(origin);

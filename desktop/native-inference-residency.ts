@@ -11,7 +11,7 @@ const MIN_RESIDENT_LIMIT = 1 * GIB;
 const MAX_RESIDENT_LIMIT = 4 * GIB;
 const RESIDENT_MEMORY_FRACTION = 0.25;
 
-export type NativeInferenceKind = 'asr' | 'semantic' | 'clap' | 'rhythm';
+export type NativeInferenceKind = 'asr' | 'semantic' | 'clap' | 'rhythm' | 'tts';
 
 interface ResidentEntry {
   active: number;
@@ -74,6 +74,10 @@ export class NativeInferenceResidency {
 
   clear(): void {
     this.entries.clear();
+  }
+
+  forget(kind: NativeInferenceKind): void {
+    this.entries.delete(kind);
   }
 
   residentKinds(): NativeInferenceKind[] {

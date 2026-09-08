@@ -1,0 +1,27 @@
+Local Kokoro text-to-speech — third-party notices and release gate
+
+This is NOT an Apache-only stack.
+
+Kokoro JS 1.2.1: Apache-2.0
+https://github.com/hexgrad/kokoro/tree/main/kokoro.js
+Kokoro-82M v1.0 ONNX weights and selected voice vectors: Apache-2.0
+https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/tree/1939ad2a8e416c0acfeecc08a694d14ef25f2231
+Transformers.js 3.8.1: Apache-2.0
+ONNX Runtime 1.21.0: MIT
+Their package license/copyright files accompany the installed runtime packages.
+
+phonemizer 1.2.1 labels its JavaScript wrapper Apache-2.0. Its generated engine
+and embedded speech data derive from eSpeak NG, licensed GPL-3.0-or-later.
+The wrapper's Apache LICENSE does not replace eSpeak's license or obligations.
+See GPL-3.0.txt and https://github.com/espeak-ng/espeak-ng .
+
+REDISTRIBUTION BLOCKER:
+The exact eSpeak preferred-form source revision, data, modifications, glue,
+toolchain and scripts corresponding to phonemizer 1.2.1's generated engine
+have not yet been established. A link to current upstream or generated JS
+alone is not a substitute for Corresponding Source.
+Before distributing a binary, archive matching Corresponding Source and
+provide it under a compliant GPLv3 section 6 method, preserving all notices.
+Do not treat an unsigned local package smoke test as release authorization.
+The app's AGPL-3.0-or-later terms and applicable network-source obligations
+remain in effect. Process isolation is not a licensing exemption.

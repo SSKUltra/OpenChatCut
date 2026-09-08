@@ -25,6 +25,7 @@ import {
   writeDataDirPointer,
 } from '../data-dir.ts';
 import { sqliteStoreEnabled } from '../storage/sqlite-store.ts';
+import type { LocalTtsService } from '../local-tts/service.ts';
 
 const ISOLATED_R2_SETTINGS = [
   'R2_ACCOUNT_ID',
@@ -82,12 +83,14 @@ function sendJson(res: ServerResponse, status: number, body: unknown): void {
 /** keyStatus + absolute path to the current asset directory. FCPXML export goes to /media/uploads/<name>
  * Convert to real disk path, otherwise every asset in NLE will be offline; the directory changes with MEDIA_DIR,
  * Only the server knows, so it is returned to the front-end along with the settings (non-key, can be disclosed). */
-function settingsBody(restartRequired = false) {
+async function settingsBody(restartRequired = false, localTts?: LocalTtsService) {
   const profile = runtimeProfile();
-  const status = keyStatus();
+  const localTtsStatus = await localTts?.status();
+  const status = keyStatus(localTtsStatus?.available);
   const configured = readDataDirPointer() ?? '';
   return {
     ...status,
+    ...(localTtsStatus ? { localTts: localTtsStatus } : {}),
     // The storage root is configuration, not a credential: echo it raw so the
     // settings field shows where projects actually live. It is not a keystore
     // key (the keystore lives inside the root), hence the explicit merge.
@@ -142,13 +145,13 @@ async function applyDataDirChange(
   await writeDataDirPointer(target);
 }
 
-export function settingsPlugin(): Plugin {
+export function settingsPlugin(localTts?: LocalTtsService): Plugin {
   return {
     name: 'openchatcut-settings',
     configureServer(server) {
       server.middlewares.use('/api/keys', async (req, res) => {
         try {
-          if (req.method === 'GET') { sendJson(res, 200, settingsBody()); return; }
+          if (req.method === 'GET') { sendJson(res, 200, await settingsBody(false, localTts)); return; }
           // POST /api/keys/test: "Test connection" detection. overrides = unsaved temporary values of the panel,
           // Only this detection takes effect and does not fall into keystore / .env.local; the result will never contain the key value.
           if (req.method === 'POST' && req.url === '/test') {
@@ -189,7 +192,7 @@ export function settingsPlugin(): Plugin {
               );
             }
             await setKeys(patch);
-            sendJson(res, 200, settingsBody(dataDirChanged));
+            sendJson(res, 200, await settingsBody(dataDirChanged, localTts));
             return;
           }
           sendJson(res, 405, { error: 'method not allowed — use GET or POST' });

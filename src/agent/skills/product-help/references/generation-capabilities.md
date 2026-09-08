@@ -1,6 +1,6 @@
 # Generation capabilities (as wired)
 
-Short map of cloud generation tools → providers. Use this when guiding setup or choosing a model. Exact availability is always the live **capabilities** block in the agent prompt.
+Short map of generation tools → providers. Use this when guiding setup or choosing a model. Exact availability is always the live **capabilities** block in the agent prompt.
 
 ## Video · `submit_video`
 
@@ -34,10 +34,13 @@ Short map of cloud generation tools → providers. Use this when guiding setup o
 | `gemini` | AI SDK speech; configured model defaults to `gemini-2.5-flash-preview-tts`; model/output/instructions |
 | `mistral` | AI SDK speech; configured model defaults to `voxtral-mini-tts-2603`; model/output |
 | `cartesia` | AI SDK speech; configured model defaults to `sonic-3`; model/speed/language/output |
+| `kokoro` | Local CPU on Apple Silicon Mac; install via Settings → Voice / TTS → Kokoro Local. US Heart `af_heart`, Michael `am_michael`; UK Emma `bf_emma`, George `bm_george`. Text/voiceId/speed only, 24 kHz mono WAV; fixed-sample Settings audition. No keys, cloning, automatic downloads, or cloud fallback. |
 
 Every provider is opt-in and requires a concrete provider-specific `voiceId`.
-Only Doubao, ElevenLabs, and MiniMax have curated choices in the voice skill;
-never invent samples for the other providers. `submit_voice` creates a media-pool
+Doubao, ElevenLabs, MiniMax, and Kokoro have curated choices in the voice skill;
+Kokoro audition is generated locally, never a fabricated sample URL. Saved
+Kokoro voice/speed choices count as confirmation. Chat still requires the configured
+agent backend. Never invent samples for the other providers. `submit_voice` creates a media-pool
 asset only and does not place it on the timeline.
 
 ## Transcription · `transcribe_track`

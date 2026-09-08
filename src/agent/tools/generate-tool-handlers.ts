@@ -8,6 +8,7 @@ import { submitMediaExport, type SubmitMediaExportArgs } from '../../generate/me
 import { trackGenerationProgress } from '../../generate/progress';
 import { submitVideo, type VideoGenerationSubmission } from '../../generate/video';
 import { submitVoice } from '../../generate/voice';
+import { t } from '../../i18n/locale';
 import { timelineToFcpxml, type NleFormat } from '../../export/fcpxml';
 import { exportMediaDir } from '../../export/mediaDir';
 import { recordExport } from '../../persist/exportHistoryStore';
@@ -64,7 +65,12 @@ const submitImageHandler: Handler = async (args, ctx) => {
 
 const submitVoiceHandler: Handler = async (args, ctx) => {
   const input = buildSubmitVoiceArgs(args);
-  const asset = await submitVoice(input, ctx.getState());
+  const asset = await submitVoice(input, ctx.getState(), {
+    signal: ctx.toolSignal,
+    onProgress: (progress) => ctx.onToolProgress?.(progress.phase === 'loading'
+      ? t('正在加载本地配音模型…')
+      : t('本地配音生成中 {pct}%', { pct: Math.round(progress.charactersDone / progress.charactersTotal * 100) })),
+  });
   addAsset(ctx, asset);
   return {
     ok: true, provider: input.provider, voiceId: input.voiceId, assetId: asset.id,

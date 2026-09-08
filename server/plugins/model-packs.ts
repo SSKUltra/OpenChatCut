@@ -16,6 +16,7 @@ import {
 import { editorCredentialAuthorized } from '../editor-auth.ts';
 import { downloadModelFile, modelCacheDir, __resetModelMissingState } from './hf-proxy.ts';
 import { recoverDirectorySwap, replaceDirectoryAtomically } from './model-pack-install.ts';
+import { mutateModelPack } from './model-pack-use.ts';
 
 const MAX_JSON_BYTES = 8 * 1024;
 
@@ -159,6 +160,12 @@ async function inspectPack(
   return result;
 }
 
+export async function verifiedModelPack(id: ModelPackId): Promise<{ root: string; installed: boolean; error?: string }> {
+  await ensureRecovered();
+  const pack = modelPackDefinition(id)!;
+  return { root: packRoot(pack), ...await inspectPack(pack) };
+}
+
 export function __inspectModelPackForVerify(
   pack: ModelPackDefinition,
   cacheDir: string,
@@ -245,7 +252,7 @@ async function verifyStagedPack(pack: ModelPackDefinition, stage: string): Promi
 }
 
 async function installStagedPack(pack: ModelPackDefinition, stage: string): Promise<void> {
-  await replaceDirectoryAtomically(stage, packRoot(pack), backupRoot(pack));
+  await mutateModelPack(pack.id, () => replaceDirectoryAtomically(stage, packRoot(pack), backupRoot(pack)));
 }
 
 async function removePackFiles(pack: ModelPackDefinition): Promise<void> {
@@ -369,11 +376,13 @@ async function deletePack(id: string): Promise<void> {
   if (!pack) throw new Error(`Unknown model pack: ${id || '(empty)'}`);
   await ensureRecovered();
   if (tasks.get(pack.id)?.status === 'downloading') throw new Error(`Model pack ${id} is downloading`);
-  await removePackFiles(pack);
-  await rm(stagingRoot(pack), { recursive: true, force: true });
-  await rm(backupRoot(pack), { recursive: true, force: true });
-  tasks.delete(pack.id);
-  inspections.delete(pack.id);
+  await mutateModelPack(pack.id, async () => {
+    await removePackFiles(pack);
+    await rm(stagingRoot(pack), { recursive: true, force: true });
+    await rm(backupRoot(pack), { recursive: true, force: true });
+    tasks.delete(pack.id);
+    inspections.delete(pack.id);
+  });
 }
 
 async function handleDownloadRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {

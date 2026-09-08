@@ -7,11 +7,33 @@ Use tags as selection filters. Use descriptions as practical hints. Age,
 accent, pronunciation, and exact duration are not stable controls unless the
 TTS provider exposes explicit parameters for them.
 
-This curated snapshot covers Doubao, ElevenLabs, and MiniMax only. Inworld,
+This curated snapshot covers Doubao, ElevenLabs, MiniMax, and Kokoro. Inworld,
 Fish Audio, Speechify, OpenAI, Gemini, Mistral, and Cartesia have no bundled
 OpenChatCut preset/sample catalog. For those providers, require a concrete
 provider-specific `voiceId` from the user or their provider account; never
 invent a preset or `/voice-samples/...` URL.
+
+## Kokoro Local English Voices
+
+Install **Settings → Voice / TTS → Kokoro Local** on an Apple Silicon Mac.
+These vectors ship with `kokoro-js@1.2.1`; the model is a separate explicit
+92,364,770-byte download. CPU runtime may use about 1.1 GiB (budgeted at 1.5 GiB),
+not just the model-file size. Audition is generated from a fixed sample in
+Settings without saving an asset. There are no Kokoro sample URLs.
+
+| voiceId | Name | Locale | Voice |
+| --- | --- | --- | --- |
+| `af_heart` | Heart | en-US | Female |
+| `am_michael` | Michael | en-US | Male |
+| `bf_emma` | Emma | en-GB | Female |
+| `bm_george` | George | en-GB | Male |
+
+Use a saved Settings choice without asking again, but include its concrete
+`voiceId` in `submit_voice`. Otherwise have the user select a voice. Supported
+parameters: `text`, `voiceId`, `speed` (0.5–2, default 1), optional `name`.
+No cloning, other languages, or cloud-only controls. No inference-time downloads
+or cloud fallback. The result is one complete 24 kHz mono WAV media-pool asset;
+use timeline tools separately for placement.
 
 ## Doubao Chinese Voices
 

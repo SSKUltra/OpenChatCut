@@ -21,6 +21,7 @@ import { XaiOauthVendorPane } from './XaiOauthVendorPane';
 import { VisionModelPane } from './VisionModelPane';
 import { LocalAsrPane } from './LocalAsrPane';
 import { LocalModelPackPane } from './LocalModelPackPane';
+import { LocalTtsPane } from './LocalTtsPane';
 import { SemanticModelPackPane } from './SemanticModelPackPane';
 import { SettingsNoteAction } from './SettingsNoteAction.tsx';
 import {
@@ -110,7 +111,9 @@ export function VendorPane({ page, hint, ctx }: {
             onChange={(value) => ctx.onStage(CAPABILITY_OVERRIDE_FIELD, value)} />
         )}
       </section>
-      {page.vendor !== 'fal' && <TestConnectionRow page={page} ctx={ctx} />}
+      {page.key === 'voice/kokoro'
+        ? <LocalTtsPane ctx={ctx} />
+        : page.vendor !== 'fal' && <TestConnectionRow page={page} ctx={ctx} />}
     </div>
   );
 }

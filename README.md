@@ -217,6 +217,8 @@ your configured agent backend. CPU inference loads lazily and is budgeted at
 **Redistribution gate:** the runtime includes GPL eSpeak components, not just
 Apache-licensed code. Matching eSpeak Corresponding Source must be established
 before binary distribution; see [third-party notices](assets/licenses/local-tts/NOTICE.txt).
+The upstream [“Invalid license” issue](https://github.com/xenova/phonemizer.js/issues/6)
+remains unresolved. Internal package qualification is not public release authorization.
 
 ## Community Resources
 

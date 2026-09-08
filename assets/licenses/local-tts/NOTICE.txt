@@ -20,8 +20,21 @@ The exact eSpeak preferred-form source revision, data, modifications, glue,
 toolchain and scripts corresponding to phonemizer 1.2.1's generated engine
 have not yet been established. A link to current upstream or generated JS
 alone is not a substitute for Corresponding Source.
+
+Upstream tracking: https://github.com/xenova/phonemizer.js/issues/6
+("Invalid license"; open with no comments as of 2026-09-08).
+The initial package commit already included generated engine/data, without
+identifying the underlying C/C++ revision or compiler/build provenance:
+https://github.com/xenova/phonemizer.js/commit/23d1602652c482972834f2cad12095372ce883c3
+The provenance investigation did not establish matching Corresponding Source.
+
 Before distributing a binary, archive matching Corresponding Source and
 provide it under a compliant GPLv3 section 6 method, preserving all notices.
-Do not treat an unsigned local package smoke test as release authorization.
+Obtain matching source/build inputs from upstream, or separately qualify a
+reproducible replacement with the same phonemization behavior and complete
+source distribution. Do not silently substitute a different runtime.
+Local/source development and internal package qualification may continue.
+Do not treat internal functional or ad-hoc package tests as authorization
+for public binary redistribution or as a finding of license compliance.
 The app's AGPL-3.0-or-later terms and applicable network-source obligations
 remain in effect. Process isolation is not a licensing exemption.

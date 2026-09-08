@@ -214,6 +214,8 @@ Emma / George（英式），保存音色与语速；默认供应商需另行选�
 **分发阻断项：**运行时包含 GPL eSpeak 组件，并非全栈 Apache。
 发布二进制前必须确认并提供匹配的 Corresponding Source，
 详见[第三方声明](assets/licenses/local-tts/NOTICE.txt)。
+上游 [“Invalid license” 问题](https://github.com/xenova/phonemizer.js/issues/6)
+仍未解决；内部打包与功能验证不代表获准公开分发二进制。
 
 ## 社区资源库
 
